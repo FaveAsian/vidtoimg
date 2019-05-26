@@ -2,16 +2,17 @@ package me.favasian.vidtoimg;
 
 import javax.swing.*;
 import javax.swing.border.Border;
+import javax.swing.filechooser.FileFilter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.IOException;
 
 public class gui {
-    private JFrame window;
+    private JFrame window = new JFrame("Converter");;
+    private convertMovietoJPG converter;
     public gui(){
-        //create instance of Jframe
-        window = new JFrame("Converter");
-
         //creates instance of gridbagconstraint
         GridBagConstraints gbc = new GridBagConstraints();
 
@@ -58,21 +59,22 @@ public class gui {
         //JButtons
         JButton done = new JButton("Done");
 
-        JButton mp4Btn = new JButton(resizeIcon(dots, 30, 20));
+        final JButton mp4Btn = new JButton(resizeIcon(dots, 30, 20));
         mp4Btn.setPreferredSize(new Dimension(30, 20));
 
-        JButton folderBtn = new JButton(resizeIcon(dots, 30, 20));
+        final JButton folderBtn = new JButton(resizeIcon(dots, 30, 20));
         folderBtn.setPreferredSize(new Dimension(30, 20));
 
-        //JTextField
-        JTextField frameJump = new JTextField(5);
+        //Numeric Text Field
+        final NumericTextField frameJump = new NumericTextField();
+        frameJump.setColumns(5);
         frameJump.setBorder(blackline);
 
         //JTextArea
-        JTextArea mp4Dir = new JTextArea(1,15);
+        final JTextArea mp4Dir = new JTextArea(1,15);
         mp4Dir.setBorder(blackline);
 
-        JTextArea folderDir = new JTextArea(1,15);
+        final JTextArea folderDir = new JTextArea(1,15);
         folderDir.setBorder(blackline);
 
         /*add labels to directional panel*/
@@ -123,10 +125,82 @@ public class gui {
         window.setContentPane(mainPanel);
         window.setVisible(true);
 
-        //add button actions
+        /*add button actions*/
+        //actionlistener for mp4 button
+        mp4Btn.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent actionEvent) {
+                //create Instance of JFileChooser
+                JFileChooser mp4Window = new JFileChooser();
+
+                //set file filter
+                mp4Window.setFileFilter(new FileFilter() {
+                    @Override
+                    public boolean accept(File file) {
+                        if(file.isDirectory()){
+                            return true;
+                        }
+                        else{
+                            String filename = file.getName().toLowerCase();
+                            return filename.endsWith(".mp4");
+                        }
+                    }
+
+                    @Override
+                    public String getDescription() {
+                        return "MP4 File";
+                    }
+                });
+
+                //set window title
+                mp4Window.setDialogTitle("MP4 Window");
+
+                //sets filechooser to only allow selection fo files
+                mp4Window.setFileSelectionMode(JFileChooser.FILES_ONLY);
+
+                //sets mp4 button to open JFileChooser window
+                if(mp4Window.showOpenDialog(mp4Btn) == JFileChooser.APPROVE_OPTION){
+                }
+
+                //sets textarea to path file
+                mp4Dir.setText(mp4Window.getSelectedFile().getAbsolutePath());
+            }
+        });
+
+        //actionlistener for folder button
         folderBtn.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent actionEvent) {
+                //create Instance of JFileChooser
+                JFileChooser folderWindow = new JFileChooser();
 
+                //set window title
+                folderWindow.setDialogTitle("Folder Window");
+
+                folderWindow.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+
+                //sets folder button to open JFileChooser window
+                if(folderWindow.showOpenDialog(folderBtn) == JFileChooser.APPROVE_OPTION){
+                }
+
+                //sets textarea to path file
+                folderDir.setText(folderWindow.getSelectedFile().getAbsolutePath());
+            }
+        });
+
+        //actionlistener for done button
+        done.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent actionEvent){
+
+                //creates instance of conversion class
+                converter = new convertMovietoJPG(mp4Dir.getText(), folderDir.getText(), "jpg", Integer.parseInt(frameJump.getText()));
+
+                try{
+                    //calls converter
+                    converter.vidimg();
+
+                    JOptionPane.showMessageDialog(null, "Finished converting!");
+                } catch (Exception e){
+                    System.out.println(e);
+                }
             }
         });
     }

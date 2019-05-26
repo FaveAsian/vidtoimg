@@ -13,7 +13,7 @@ import java.io.IOException;
 public class convertMovietoJPG {
     private int frameJump;
     private String mp4Path, imgPath, imgType;
-    public convertMovietoJPG(String mp4Path, String imgPath, String imgType,int frameJump){
+    public convertMovietoJPG(String mp4Path, String imgPath, String imgType, int frameJump){
         this.mp4Path = mp4Path;
         this.imgPath = imgPath;
         this.imgType = imgType;
@@ -27,9 +27,10 @@ public class convertMovietoJPG {
         Frame frame;
         int imgNum = 0;
 
-        frameGrabber.start();
+        //calls method to delete files in selected folder
+        deleteFiles();
 
-        System.out.println("Video has " + frameGrabber.getLengthInFrames() + " frames and has frame rate of "+ frameGrabber.getFrameRate());
+        frameGrabber.start();
 
         try {
             for(int i=frameJump;i<=frameGrabber.getLengthInFrames();i+=frameJump){
@@ -46,6 +47,20 @@ public class convertMovietoJPG {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        System.out.println("finished");
+    }
+
+    public void deleteFiles(){
+        File index = new File(imgPath);
+
+        String[] entries = index.list();
+
+        if(entries.length == 0)
+            return;
+        else{
+            for(String s: entries){
+                File currentFile = new File(index.getPath(),s);
+                currentFile.delete();
+            }
+        }
     }
 }
